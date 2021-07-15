@@ -25,26 +25,25 @@ export composition
 
 function composition(sequence)
     sequence = normalizeDNA(sequence) # make uppercase string, check invalid bases
-    base_count = Dict("A" => 0,
-                      "T" => 0,
-                      "G" => 0,
-                      "C" => 0,
-                      "N" => 0)
+    base_count = Dict('A' => 0,
+                      'T' => 0,
+                      'G' => 0,
+                      'C' => 0,
+                      'N' => 0)
 
     for base in sequence
         if base == 'A'
-            base_count["A"] += 1
+            base_count['A'] += 1
         elseif base == 'C'
-            base_count["C"] += 1
+            base_count['C'] += 1
         elseif base == 'G'
-            base_count["G"] += 1
+            base_count['G'] += 1
         elseif base == 'T'
-            base_count["T"] += 1
+            base_count['T'] += 1
         elseif base == 'N' 
-            base_count["N"] += 1
+            base_count['N'] += 1
         end
     end
-    
     return base_count
 end
 
@@ -63,7 +62,7 @@ function gc_content(sequence)
     seqlength = length(sequence)
     
     ## Pull number of G's and C's from `composition()` and add values together
-    gc_count = composition(sequence)["G"] + composition(sequence)["C"]
+    gc_count = composition(sequence)['G'] + composition(sequence)['C']
     
     ## return GC content as number of G's and C's out of sequence length
     return gc_count / seqlength
@@ -107,29 +106,23 @@ function parse_fasta(path)
     headers = []
     sequences = []
     current_seq = ""
-    
+
     for line in eachline(path)                
         if startswith(line, '>')
             line = chop(line, head = 1, tail = 0)
             push!(headers, line)
-        else
-            line = normalizeDNA(line)
-            
-            for base in line 
-                if !(base in "ATGCN")
-                    error("Invalid base $base")      
-                end
-            end
 
-            current_seq = current_seq * line                                    
-
-            if current_seq != ""               ##To avoid pushing empty string from first line
+            if current_seq != ""               
                 push!(sequences, current_seq)
                 current_seq = ""                                   
             end
+        else
+            line = normalizeDNA(line)
+            
+            current_seq = current_seq * line
         end
     end
-    push!(sequences, current_seq)             ##Push last sequence 
+    push!(sequences, current_seq)             
     return tuple(headers, sequences)
 end
 # Your code here.

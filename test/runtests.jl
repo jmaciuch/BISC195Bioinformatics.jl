@@ -63,7 +63,7 @@ using Test
 
         ex1 = parse_fasta(ex1_path)
         @test ex1 isa Tuple
-        @test all(x-> x isa String, ex1[1])
+        @test all(x-> x isa AbstractString, ex1[1])
         @test all(x-> x isa String, ex1[2])
 
         @test ex1[1] == ["ex1.1 | easy", "ex1.2 | multiline"]
