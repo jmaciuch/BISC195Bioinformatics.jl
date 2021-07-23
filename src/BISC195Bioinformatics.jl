@@ -1,4 +1,4 @@
-module BioinformaticsBISC195
+module BISC195Bioinformatics
 
 export normalizeDNA
 
@@ -129,4 +129,4 @@ end
 # Don't forget to export your functions!
 
 
-end # module BioinformaticsBISC195
+end # module BISC195Bioinformatics
