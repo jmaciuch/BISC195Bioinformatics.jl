@@ -1,4 +1,4 @@
-module Assignment07
+module BioinformaticsBISC195
 
 export normalizeDNA
 
@@ -108,24 +108,25 @@ function parse_fasta(path)
     current_seq = ""
 
     for line in eachline(path)                
-        if startswith(line, '>')                     ##When line is a header
-            line = chop(line, head = 1, tail = 0)    ##Chop '>' character
-            push!(headers, line)                     ##Push line to headers
+        if startswith(line, '>')
+            line = chop(line, head = 1, tail = 0)
+            push!(headers, line)
 
-            if current_seq != ""                     ##Push whatever is being held in current_seq unless it is first line
+            if current_seq != ""               
                 push!(sequences, current_seq)
                 current_seq = ""                                   
             end
-        else                                         ##If line is not header, concatenate line to current_seq
+        else
             line = normalizeDNA(line)
+            
             current_seq = current_seq * line
         end
     end
-    push!(sequences, current_seq)                    ##Push final current_seq to sequences
+    push!(sequences, current_seq)             
     return tuple(headers, sequences)
 end
 # Your code here.
 # Don't forget to export your functions!
 
 
-end # module Assignment07
+end # module BioinformaticsBISC195

@@ -1,7 +1,7 @@
-using Assignment07
+using BISC195Bioinformatics
 using Test
 
-@testset "Assignment07" begin
+@testset "BISC195Bioinformatics" begin
     
 @testset "Using Strings" begin
     
