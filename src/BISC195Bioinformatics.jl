@@ -190,4 +190,64 @@ function sequence_lengths(path)
     return seq_lengths
 end
 
+export morethan25k
+"""
+    morethan25k(headers, sequences)
+
+Given a tuple of headers and sequences (output from parse_fasta function), returns tuple containing only sequences, headers, and sequence lengths for sequences with more than 25k bases.
+"""
+function morethan25k(headers, sequences)
+    seq_lengths = [length(sequence) for sequence in sequences] ## pushes sequence lengths for each sequence to new array
+    
+    keep = findall(x -> x > 25000, seq_lengths) ##keep sequence if sequence length more than 25000 bases
+    
+    headers_25k = headers[keep]
+    sequences_25k = sequences[keep]
+
+    return tuple(headers_25k, sequences_25k, seq_lengths)
+end
+
+export uniquekmers
+"""
+    uniquekmers(sequence, k)
+
+Given a sequence and an integer k, returns all unique sequences of length k. 
+Does not recognize kmers containing invalid bases. 
+
+Example: 
+julia> seq = "ATGCGATXGTAC";
+
+julia> uniquekmers(seq, 4)
+Set{Any} with 5 elements:
+  "GTAC"
+  "TGCG"
+  "ATGC"
+  "CGAT"
+  "GCGA"
+"""
+function  uniquekmers(sequence, k)
+    1 <= k <= length(sequence) || error("k must be a positive integer less than the length of the sequence") ##Throws error if k is larger than sequence length
+
+    kmers = Set() ## initialize set
+     
+    stopindex = length(sequence) - k + 1
+
+    for i in 1:stopindex
+        kmer = sequence[i:(i+k-1)]
+        kmer = uppercase(kmer) 
+        
+        keep = true 
+
+        for base in kmer       ## Changes flag to false if invalid base encountered
+            if !occursin(base, "AGCT") 
+                keep = false
+                break          ## Stop evalulating kmer once the first invalid base is encountered
+            end
+        end
+
+        keep && push!(kmers, kmer) ## If keep still true, push kmer to set
+    end
+    return kmers
+end
+
 end # module BISC195Bioinformatics
