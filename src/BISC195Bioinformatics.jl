@@ -11,10 +11,10 @@ Returns a String.
 """
 function normalizeDNA(seq)
     seq = uppercase(string(seq))
-    #for base in seq
+    for base in seq
         # note: `N` indicates an unknown base
-        #occursin(base, "AGCTNR") || error("invalid base $base")
-    #end
+        occursin(base, "AGCTN") || error("invalid base $base")
+    end
     return seq # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
 end
 
@@ -133,8 +133,7 @@ function parse_fasta(path)
                 current_seq = ""                                   
             end
         else
-            line = normalizeDNA(line)
-            
+            line = uppercase(line)
             current_seq = current_seq * line
         end
     end
