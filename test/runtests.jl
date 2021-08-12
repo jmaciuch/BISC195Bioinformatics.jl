@@ -69,8 +69,6 @@ using Test
         @test ex1[1] == ["ex1.1 | easy", "ex1.2 | multiline"]
         @test ex1[2] == ["AATTATAGC", "CGCCCCCCAGTCGGATT"]
 
-        @test_throws Exception parse_fasta(ex2_path)
-
         cov2 = parse_fasta(genomes)
         @test length(cov2[1]) == 8
         @test length(cov2[2]) == 8
