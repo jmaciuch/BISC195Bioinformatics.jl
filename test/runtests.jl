@@ -74,6 +74,34 @@ using Test
         @test length(cov2[2]) == 8
     end #parse_fasta
 
+    @test_set "splice_fasta" begin
+        variant_dict = Dict("Alpha" => "Alpha",
+                "B.1.1.7" => "Alpha",
+                "Beta" => "Beta",
+                "B.1.351" => "Beta",
+                "B.1.351.2" => "Beta",
+                "B.1.351.3" => "Beta",
+                "Gamma" => "Gamma",
+                "P.1" => "Gamma",
+                "P.1.1" => "Gamma",
+                "P.1.2" => "Gamma",
+                "Delta" => "Delta",
+                "B.1.617.2" => "Delta",
+                "AY.1" => "Delta",
+                "AY.2" => "Delta",
+                "AY.3" => "Delta",
+                "AY.3.1" => "Delta")
+
+        testpath = normpath(joinpath(@__DIR__, "..", "data"))
+        Analysis1_path = joinpath(testpath, "Analysis1_test.fasta")
+
+        Analysis1 = splice_fasta(Analysis1_path, variant_dict, 2)
+        @test all(x -> x isa Tuple)
+
+        @test Analysis1[1] == ["Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG"]
+
+        @test_throws Exception splice_fasta(Analysis1_path, variant_dict, 100)
+        
 end # strings
 
 # @testset "Using BioSequences" begin

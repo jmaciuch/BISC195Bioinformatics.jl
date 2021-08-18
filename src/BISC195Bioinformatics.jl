@@ -249,4 +249,74 @@ function  uniquekmers(sequence, k)
     return kmers
 end
 
+export splice_fasta
+"""
+    splice_fasta(path, variants, k)
+
+Given a path to a fasta file and array of pre-defined variant arrays, outputs array of tuples containing k number of sequences 
+from each variant in variants and the variant name. 
+
+Example: 
+julia> variant_dict = Dict("Alpha" => "Alpha",
+                           "B.1.1.7" => "Alpha",
+                           "Beta" => "Beta",
+                           "B.1.351" => "Beta",
+                           "B.1.351.2" => "Beta",
+                           "B.1.351.3" => "Beta",
+                           ...)
+
+julia> splice_fasta("data/Analysis1_test.fasta", variant_dict, 2)
+8-element Vector{Any}:
+("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
+⋮
+("Alpha", "CCGGGTGTGACCGAAAGGTAAGATGGAGAGCCTTGTCCCTGGTTTCAACGAGAAAACACA")
+
+julia> splice_fasta("data/Analysis1_test.fasta", variant_dict, 100)
+ERROR: Dataset contains less than 100 entries for Beta variant
+
+"""
+function splice_fasta(path, variant_dict, k)
+    headers, sequences = parse_fasta(path)
+
+    pangolins = []
+    
+    for header in headers                     
+        split_header = split(header, "|")
+        push!(pangolins, split_header[2])                                          
+    end
+
+    var_seq = []                                 ## Array contains tuples of variant name and sequences
+
+    i = 1                                        ## If panglolin in dict, pull variant name and pair with sequence
+    for pangolin in pangolins
+        haskey(variant_dict, pangolin) && push!(var_seq, tuple(variant_dict[pangolin], sequences[i]))
+        i += 1
+    end  
+
+    variant_set = Set(values(variant_dict))      ## Get a set of all variant names without repeats
+
+    indices = []
+
+    for variant in variant_set                   ## find indices of k # of tuples for each variant
+        current_var = Set()
+        
+        k_count = 0                              ## Count amount of sequences available for each variant to use in error eval
+        for tup in var_seq                       
+            if tup[1] == variant
+                k_count += 1
+            end
+        end
+
+        (k_count < k) && error("Dataset contains less than $k entries for $variant variant")
+
+        while length(current_var) < k
+            push!(current_var, rand(findall(tup -> tup[1] == variant, var_seq)))
+        end
+        
+        union!(indices, current_var)
+    end
+
+    return var_seq[indices]
+end
+
 end # module BISC195Bioinformatics
