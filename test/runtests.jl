@@ -74,7 +74,7 @@ using Test
         @test length(cov2[2]) == 8
     end #parse_fasta
 
-    @test_set "splice_fasta_var" begin
+    @testset "splice_fasta_var" begin
         variant_dict = Dict("Alpha" => "Alpha",
                 "B.1.1.7" => "Alpha",
                 "Beta" => "Beta",
@@ -103,7 +103,7 @@ using Test
         @test_throws Exception splice_fasta_var(Analysis1_path, variant_dict, 5)
     end
     
-    @test_set uniquekmer_mean_and_std begin
+    @testset uniquekmer_mean_and_std begin
         Analysis1_kmer = uniquekmer_mean_and_std(Analysis1_splice, 3)
 
         @test Analysis1_kmer[1] == ("Beta", 31.5, 3.5355339059327378)
