@@ -249,9 +249,9 @@ function  uniquekmers(sequence, k)
     return kmers
 end
 
-export splice_fasta
+export splice_fasta_var
 """
-    splice_fasta(path, variants, k)
+    splice_fasta_var(path, variants, k)
 
 Given a path to a fasta file and array of pre-defined variant arrays, outputs array of tuples containing k number of sequences 
 from each variant in variants and the variant name. 
@@ -261,21 +261,19 @@ julia> variant_dict = Dict("Alpha" => "Alpha",
                            "B.1.1.7" => "Alpha",
                            "Beta" => "Beta",
                            "B.1.351" => "Beta",
-                           "B.1.351.2" => "Beta",
-                           "B.1.351.3" => "Beta",
-                           ...)
+                           etc...)
 
-julia> splice_fasta("data/Analysis1_test.fasta", variant_dict, 2)
+julia> splice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2)
 8-element Vector{Any}:
 ("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
 ⋮
 ("Alpha", "CCGGGTGTGACCGAAAGGTAAGATGGAGAGCCTTGTCCCTGGTTTCAACGAGAAAACACA")
 
-julia> splice_fasta("data/Analysis1_test.fasta", variant_dict, 100)
+julia> splice_fasta_var("data/Analysis1_test.fasta", variant_dict, 100)
 ERROR: Dataset contains less than 100 entries for Beta variant
 
 """
-function splice_fasta(path, variant_dict, k)
+function splice_fasta_var(path, variant_dict, k)
     headers, sequences = parse_fasta(path)
 
     pangolins = []
@@ -286,19 +284,21 @@ function splice_fasta(path, variant_dict, k)
     end
 
     var_seq = []                                 ## Array contains tuples of variant name and sequences
+    variant_set = Set()                          ## Set containing all variant names present in data set w/o repeats
 
-    i = 1                                        ## If panglolin in dict, pull variant name and pair with sequence
-    for pangolin in pangolins
-        haskey(variant_dict, pangolin) && push!(var_seq, tuple(variant_dict[pangolin], sequences[i]))
-        i += 1
+    i = 1                                        
+    for pangolin in pangolins                    
+        if haskey(variant_dict, pangolin)                                ## If panglolin in variant_dict
+            push!(var_seq, tuple(variant_dict[pangolin], sequences[i]))  ## Tuple & push variant name and sequence
+            push!(variant_set, variant_dict[pangolin])       ## Push variant name into set to keep track of variants in dataset
+            i += 1
+        end
     end  
-
-    variant_set = Set(values(variant_dict))      ## Get a set of all variant names without repeats
 
     indices = []
 
-    for variant in variant_set                   ## find indices of k # of tuples for each variant
-        current_var = Set()
+    for variant in variant_set                   ## finding indices for k # of tuples for each variant
+        current_var = Set()                      ## avoiding repeat indices for current variant being evaluated
         
         k_count = 0                              ## Count amount of sequences available for each variant to use in error eval
         for tup in var_seq                       
@@ -309,14 +309,58 @@ function splice_fasta(path, variant_dict, k)
 
         (k_count < k) && error("Dataset contains less than $k entries for $variant variant")
 
-        while length(current_var) < k
+        while length(current_var) < k            ## Pick random number out of all indices for variant
             push!(current_var, rand(findall(tup -> tup[1] == variant, var_seq)))
         end
         
-        union!(indices, current_var)
+        union!(indices, current_var)             ## Add current index picks to indices array
     end
 
     return var_seq[indices]
+end
+
+export uniquekmer_mean_and_std
+"""
+    uniquekmer_mean_and_std(category_sequence, k)
+
+Given an array of tuples of the form ("Category", "Sequence") and a kmer length (k), returns tuple of the form ("Category", 
+mean # unique kmers per seq, std dev). 
+
+
+"""
+
+function uniquekmer_mean_and_std(category_sequence, k)
+    categories = []                                        ## array containing category names (i.e. "Alpha", "Beta", etc.)
+    uniquekmer_counts = []
+
+    current_category = []
+    for tup in category_sequence
+
+        if !(tup[1] in categories)                          ## If function encounters new category name
+            push!(categories, tup[1])                       ## Push current category to list of all categories
+
+            if length(current_category) != 0                ## If there's something stored in current_category
+                push!(uniquekmer_counts, current_category)                ## Push current category to uniquekmer_counts
+                current_category = []                                     ## Re-initialize empty set
+                push!(current_category, length(uniquekmers(tup[2], k)))   ## Push first kmer count of new category to current_category
+            else                                            
+                push!(current_category, length(uniquekmers(tup[2], k)))   ## If this is the first iter, just push kmer count to current
+            end
+        else    
+            push!(current_category, length(uniquekmers(tup[2], k))) ## If function is in the middle of a category, proceed pushing count 
+        end
+    end
+    push!(uniquekmer_counts, current_category)              ## Push last category's kmer counts
+    
+    category_mean_and_std = []
+
+    for i in eachindex(categories)              
+        mean_kmer = mean(uniquekmer_counts[i])            
+        std_dev_kmer = std(uniquekmer_counts[i])
+
+        push!(category_mean_and_std, tuple(categories[i], mean_kmer, std_dev_kmer))
+    end
+    return category_mean_and_std
 end
 
 end # module BISC195Bioinformatics

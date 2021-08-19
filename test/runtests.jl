@@ -74,7 +74,7 @@ using Test
         @test length(cov2[2]) == 8
     end #parse_fasta
 
-    @test_set "splice_fasta" begin
+    @test_set "splice_fasta_var" begin
         variant_dict = Dict("Alpha" => "Alpha",
                 "B.1.1.7" => "Alpha",
                 "Beta" => "Beta",
@@ -92,16 +92,26 @@ using Test
                 "AY.3" => "Delta",
                 "AY.3.1" => "Delta")
 
-        testpath = normpath(joinpath(@__DIR__, "..", "data"))
+        testpath = normpath(joinpath(@__DIR__, "data"))
         Analysis1_path = joinpath(testpath, "Analysis1_test.fasta")
 
-        Analysis1 = splice_fasta(Analysis1_path, variant_dict, 2)
-        @test all(x -> x isa Tuple)
+        Analysis1_splice = splice_fasta_var(Analysis1_path, variant_dict, 2)
+        @test all(x -> x isa Tuple, Analysis1_splice)
+        @test all( x -> x[1] in values(variant_dict), Analysis1_splice)
+        @test Analysis1_splice[1] == ("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
 
-        @test Analysis1[1] == ["Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG"]
+        @test_throws Exception splice_fasta_var(Analysis1_path, variant_dict, 5)
+    end
+    
+    @test_set uniquekmer_mean_and_std begin
+        Analysis1_kmer = uniquekmer_mean_and_std(Analysis1_splice, 3)
 
-        @test_throws Exception splice_fasta(Analysis1_path, variant_dict, 100)
-        
+        @test Analysis1_kmer[1] == ("Beta", 31.5, 3.5355339059327378)
+        @test all(x -> x isa Tuple, Analysis1_kmer)
+        @test all(x -> x[1] isa String, Analysis1_kmer)
+        @test all(x -> x[2] isa Float64, Analysis1_kmer)
+        @test all(x -> x[3] isa Float64, Analysis1_kmer)
+    end
 end # strings
 
 # @testset "Using BioSequences" begin
