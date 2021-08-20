@@ -74,7 +74,7 @@ using Test
         @test length(cov2[2]) == 8
     end #parse_fasta
 
-    @testset "splice_fasta_var" begin
+    @testset "slice_fasta_var" begin
         variant_dict = Dict("Alpha" => "Alpha",
                 "B.1.1.7" => "Alpha",
                 "Beta" => "Beta",
@@ -95,12 +95,12 @@ using Test
         testpath = normpath(joinpath(@__DIR__, "data"))
         Analysis1_path = joinpath(testpath, "Analysis1_test.fasta")
 
-        Analysis1_splice = splice_fasta_var(Analysis1_path, variant_dict, 2)
-        @test all(x -> x isa Tuple, Analysis1_splice)
-        @test all( x -> x[1] in values(variant_dict), Analysis1_splice)
-        @test Analysis1_splice[1] == ("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
+        Analysis1_slice = slice_fasta_var(Analysis1_path, variant_dict, 2)
+        @test all(x -> x isa Tuple, Analysis1_slice)
+        @test all( x -> x[1] in values(variant_dict), Analysis1_slice)
+        @test Analysis1_slice[1] == ("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
 
-        @test_throws Exception splice_fasta_var(Analysis1_path, variant_dict, 5)
+        @test_throws Exception slice_fasta_var(Analysis1_path, variant_dict, 5)
     end
     
     @testset uniquekmer_mean_and_std begin
@@ -111,6 +111,16 @@ using Test
         @test all(x -> x[1] isa String, Analysis1_kmer)
         @test all(x -> x[2] isa Float64, Analysis1_kmer)
         @test all(x -> x[3] isa Float64, Analysis1_kmer)
+    end
+
+    @testset slice_fasta_date begin
+        testpath = normpath(joinpath(@__DIR__, "data"))
+        Analysis2_path = joinpath(testpath, "Analysis2_test.fasta")
+        
+        Analysis2_splice = slice_fasta_date(Analysis2_path, 5)
+        @test all(x -> x isa Tuple, Analysis2_slice)
+        @test all(x -> length(x[1]) == 10, Analysis2_slice)
+        @test Analysis2_slice[1] == ("2021-04-01", "ECDIPIGAGICASYQTQTNSPRRARSVASQSIIAYTMSLGAENSVAYSNNSIAIPTNFTI")
     end
 end # strings
 

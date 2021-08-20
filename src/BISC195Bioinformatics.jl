@@ -363,4 +363,45 @@ function uniquekmer_mean_and_std(category_sequence, k)
     return category_mean_and_std
 end
 
+export splice_fasta_date
+"""
+    splice_fasta_date(path, k)
+
+Given a path to a fasta file and a sample size k, provides an array of tuples of the form (Collection date, sequence)
+"""
+function splice_fasta_date(path, k)
+    headers, sequences = parse_fasta(path)
+
+    length(headers) >= k || error("Data set contains less than $k entries")
+
+    dates = []
+    
+    for header in headers
+        split_header = split(header, "|")
+        date = split_header[3]
+
+        if length(date) == 7                 ## If collection date only gives month and year i.e. 2020-07
+            date = date * "-01"              ## Add default day (1st of the month)
+            push!(dates, date)
+        else
+            push!(dates, date)
+        end                                       
+    end
+    
+    date_seq = []
+
+    for i in eachindex(dates)                ## Pair collection dates with sequences
+        push!(date_seq, tuple(dates[i], sequences[i]))
+    end
+        
+    indices = []
+
+    while length(indices) < k               ## Pick k (non-repeating) index numbers out of dates array
+        index = rand(1:length(dates), 1)
+        !(index in indices) && union!(indices, index)
+    end
+
+    return date_seq[indices]
+end
+
 end # module BISC195Bioinformatics
