@@ -249,9 +249,9 @@ function  uniquekmers(sequence, k)
     return kmers
 end
 
-export splice_fasta_var
+export slice_fasta_var
 """
-    splice_fasta_var(path, variants, k)
+    slice_fasta_var(path, variants, k)
 
 Given a path to a fasta file and array of pre-defined variant arrays, outputs array of tuples containing k number of sequences 
 from each variant in variants and the variant name. 
@@ -263,17 +263,17 @@ julia> variant_dict = Dict("Alpha" => "Alpha",
                            "B.1.351" => "Beta",
                            etc...)
 
-julia> splice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2)
+julia> slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2)
 8-element Vector{Any}:
 ("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
 ⋮
 ("Alpha", "CCGGGTGTGACCGAAAGGTAAGATGGAGAGCCTTGTCCCTGGTTTCAACGAGAAAACACA")
 
-julia> splice_fasta_var("data/Analysis1_test.fasta", variant_dict, 100)
+julia> slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 100)
 ERROR: Dataset contains less than 100 entries for Beta variant
 
 """
-function splice_fasta_var(path, variant_dict, k)
+function slice_fasta_var(path, variant_dict, k)
     headers, sequences = parse_fasta(path)
 
     pangolins = []
@@ -363,13 +363,59 @@ function uniquekmer_mean_and_std(category_sequence, k)
     return category_mean_and_std
 end
 
-export splice_fasta_date
+export format_date
+
 """
-    splice_fasta_date(path, k)
+    format_date(date)
+
+Given a date in the format "YYYY-MM-DD", returns date in the formatting for Date package, i.e. Date(YYYY, MM, DD).
+"""
+using Dates
+
+function format_date(date)
+    length(date) == 10 || error("Date is not in YYYY-MM-DD format")  ## Checking that input is properly formatted
+
+    for i in eachindex(date)
+        if i == 5 || i == 8             
+            date[i] == '-' || error("Date is not in YYYY-MM-DD format")
+        else
+            occursin(date[i], "0123456789") || error("Date is not in YYYY-MM-DD format")
+        end
+    end
+    
+    date_split = split(date, "-")
+    
+    YYYY = parse(Int64, date_split[1]) ## Converting substrings into numbers for Date function
+    MM = parse(Int64, date_split[2])
+    DD = parse(Int64, date_split[3])
+    
+    return Date(YYYY, MM, DD)
+end
+
+export date_diff
+
+"""
+    date_diff(date1, date2)
+
+Returns the length of time (in days) between two dates of the form "YYYY-MM-DD" 
+"""
+using Dates
+
+function date_diff(date1, date2)
+    typeof(date1) == Date || (date1 = format_date(date1))          ##Formatting dates for Dates package operation
+    typeof(date2) == Date || (date2 = format_date(date2))
+
+    diff = abs(date2 - date1)
+    return Dates.value(diff)                                       ## Convert Date type into integer 
+end
+
+export slice_fasta_date
+"""
+    slice_fasta_date(path, k)
 
 Given a path to a fasta file and a sample size k, provides an array of tuples of the form (Collection date, sequence)
 """
-function splice_fasta_date(path, k)
+function slice_fasta_date(path, k)
     headers, sequences = parse_fasta(path)
 
     length(headers) >= k || error("Data set contains less than $k entries")
@@ -387,21 +433,58 @@ function splice_fasta_date(path, k)
             push!(dates, date)
         end                                       
     end
-    
-    date_seq = []
 
-    for i in eachindex(dates)                ## Pair collection dates with sequences
-        push!(date_seq, tuple(dates[i], sequences[i]))
+    dates_formatted = []
+
+    for i in eachindex(dates)                ## Format dates
+        date = format_date(dates[i])
+        push!(dates_formatted, date)
     end
         
     indices = []
 
     while length(indices) < k               ## Pick k (non-repeating) index numbers out of dates array
-        index = rand(1:length(dates), 1)
+        index = rand(1:length(dates_formatted), 1)
         !(index in indices) && union!(indices, index)
     end
 
-    return date_seq[indices]
+    return tuple(dates_formatted[indices], sequences[indices])
+end
+
+export time_vs_align_score
+
+"""
+    time_vs_align_score(path, k)
+
+Given a path to a fasta file and a sample size (k), produces array of data points with length of time between collection dates and
+protein alignment score. 
+Produces one data point for every match pair within fasta file.
+    
+Score model only accommodates fasta files containing protein sequences. 
+
+"""
+using BioAlignments
+
+function time_vs_align_score(path, k)
+    dates, sequences = slice_fasta_date(path, k)
+
+    align_mat = zeros(length(sequences), length(sequences))       ## Initializing matrices for alignment and date comparison
+    time_mat = zeros(length(dates), length(dates))
+
+    scoremodel = AffineGapScoreModel(BLOSUM62, gap_open=-10, gap_extend=-1)
+
+    time_align = []
+
+    for i in 1:length(dates)
+        for j in 1:length(dates)
+            if i < j
+                align_mat[i, j] = score(pairalign(GlobalAlignment(), sequences[i], sequences[j], scoremodel))
+                time_mat[i, j] = date_diff(dates[i], dates[j])
+                push!(time_align, tuple(time_mat[i, j], align_mat[i, j]))
+            end
+        end
+    end
+    return time_align
 end
 
 end # module BISC195Bioinformatics

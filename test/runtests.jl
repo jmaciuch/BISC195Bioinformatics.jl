@@ -1,5 +1,6 @@
 using BISC195Bioinformatics
 using Test
+using Dates
 
 @testset "BISC195Bioinformatics" begin
     
@@ -95,15 +96,15 @@ using Test
         testpath = normpath(joinpath(@__DIR__, "data"))
         Analysis1_path = joinpath(testpath, "Analysis1_test.fasta")
 
-        Analysis1_slice = slice_fasta_var(Analysis1_path, variant_dict, 2)
+        Analysis1_slice = slice_fasta_var(Analysis1_path, variant_dict, 1)
         @test all(x -> x isa Tuple, Analysis1_slice)
         @test all( x -> x[1] in values(variant_dict), Analysis1_slice)
-        @test Analysis1_slice[1] == ("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
+        @test Analysis1_slice[1] == ("Beta", "CTTTAAAATCTGTGTGGCTGTCACTCGGCTGCATGCTTAGTGCACTCACGCAGTATAATT")
 
         @test_throws Exception slice_fasta_var(Analysis1_path, variant_dict, 5)
-    end
+    end # slice_fasta_var
     
-    @testset uniquekmer_mean_and_std begin
+    @testset "uniquekmer_mean_and_std" begin
         Analysis1_kmer = uniquekmer_mean_and_std(Analysis1_splice, 3)
 
         @test Analysis1_kmer[1] == ("Beta", 31.5, 3.5355339059327378)
@@ -111,17 +112,37 @@ using Test
         @test all(x -> x[1] isa String, Analysis1_kmer)
         @test all(x -> x[2] isa Float64, Analysis1_kmer)
         @test all(x -> x[3] isa Float64, Analysis1_kmer)
-    end
+    end # uniquekmer_mean_and_std
 
-    @testset slice_fasta_date begin
+    @testset "format_date" begin
+        test1 = "2020-04-23"
+        @test format_date(test1) == Date(2020, 04, 23)
+        @test typeof(format_date(test1)) == Date
+
+        @test_throws Exception format_date("20-04-23")
+        @test_throws Exception format_date("2020/04/23")
+        @test_throws Exception format_date("2020-04-0X")
+    end #format_date
+
+    @testset "date_diff" begin
+        date1 = "2020-01-10"
+        date2 = "2020-01-02"
+        @test date_diff(date1, date2) == 8
+        @test typeof(date_diff(date1, date2)) == Int64
+        @test_throws Exception date_diff("2020-01-10", "2020/01/02")
+    end #date_diff
+
+    @testset "slice_fasta_date" begin
         testpath = normpath(joinpath(@__DIR__, "data"))
         Analysis2_path = joinpath(testpath, "Analysis2_test.fasta")
         
-        Analysis2_splice = slice_fasta_date(Analysis2_path, 5)
-        @test all(x -> x isa Tuple, Analysis2_slice)
-        @test all(x -> length(x[1]) == 10, Analysis2_slice)
-        @test Analysis2_slice[1] == ("2021-04-01", "ECDIPIGAGICASYQTQTNSPRRARSVASQSIIAYTMSLGAENSVAYSNNSIAIPTNFTI")
-    end
+        Analysis2_slice = slice_fasta_date(Analysis2_path, 3)
+        @test all(x -> typeof(x) == Date, Analysis2_slice[1])
+        @test all(x -> typeof(x) == String, Analysis2_slice[2])
+        @test Analysis2_slice[1] == Any[Date("2021-03-03"), Date("2021-04-25"), Date("2021-04-23")]
+        @test Analysis2_slice[2] == Any["NGVKGFNCYFPLQSYGFQPTNGVGYQPYRVVVLSFELLHAPATVCGPKKSTNLVKNKCVN", "MFVFLVLLPLVSSQCVNLTTRTQLPPAYTNSFTRGVYYPDKVFRSSVLHSTQDLFLPFFS", "LLALHKSYLTPGDSFSGWTAGAAAYYVGYLQPRTFLLKYNENGTITDAVDCALDPLSETK"]
+    end #slice_fasta_date
+
 end # strings
 
 # @testset "Using BioSequences" begin
