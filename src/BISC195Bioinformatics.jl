@@ -1,7 +1,6 @@
 module BISC195Bioinformatics
 
 export normalizeDNA
-
 """
     normalizeDNA(::AbstractString)
 
@@ -149,7 +148,6 @@ Given path to a fasta file, returns mean and standard deviation of sequence leng
 
 Returns tuple (mean length, std length, mean gc content, std gc content)
 """
-
 using Statistics 
 
 function mean_and_std_fasta(path)
@@ -325,10 +323,7 @@ export uniquekmer_mean_and_std
 
 Given an array of tuples of the form ("Category", "Sequence") and a kmer length (k), returns tuple of the form ("Category", 
 mean # unique kmers per seq, std dev). 
-
-
 """
-
 function uniquekmer_mean_and_std(category_sequence, k)
     categories = []                                        ## array containing category names (i.e. "Alpha", "Beta", etc.)
     uniquekmer_counts = []
@@ -364,11 +359,16 @@ function uniquekmer_mean_and_std(category_sequence, k)
 end
 
 export format_date
-
 """
     format_date(date)
 
 Given a date in the format "YYYY-MM-DD", returns date in the formatting for Date package, i.e. Date(YYYY, MM, DD).
+
+Example:
+julia> date = "2021/07/25";
+
+julia> format_date(date)
+2021-07-25
 """
 using Dates
 
@@ -376,10 +376,12 @@ function format_date(date)
     length(date) == 10 || error("Date is not in YYYY-MM-DD format")  ## Checking that input is properly formatted
 
     for i in eachindex(date)
-        if i == 5 || i == 8             
-            date[i] == '-' || error("Date is not in YYYY-MM-DD format")
-        else
+        if i != 5 && i != 8             
             occursin(date[i], "0123456789") || error("Date is not in YYYY-MM-DD format")
+        end
+
+        if date[i] == '/'
+            date = replace(date, "/" => "-")
         end
     end
     
@@ -461,7 +463,6 @@ protein alignment score.
 Produces one data point for every match pair within fasta file.
     
 Score model only accommodates fasta files containing protein sequences. 
-
 """
 using BioAlignments
 
@@ -473,18 +474,20 @@ function time_vs_align_score(path, k)
 
     scoremodel = AffineGapScoreModel(BLOSUM62, gap_open=-10, gap_extend=-1)
 
-    time_align = []
+    times = []
+    scores = []
 
     for i in 1:length(dates)
         for j in 1:length(dates)
             if i < j
                 align_mat[i, j] = score(pairalign(GlobalAlignment(), sequences[i], sequences[j], scoremodel))
                 time_mat[i, j] = date_diff(dates[i], dates[j])
-                push!(time_align, tuple(time_mat[i, j], align_mat[i, j]))
+                push!(times, time_mat[i, j])
+                push!(scores, align_mat[i, j])
             end
         end
     end
-    return time_align
-end
+    return tuple(times, scores)
+end 
 
 end # module BISC195Bioinformatics

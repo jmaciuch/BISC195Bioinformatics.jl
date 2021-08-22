@@ -115,12 +115,11 @@ using Dates
     end # uniquekmer_mean_and_std
 
     @testset "format_date" begin
-        test1 = "2020-04-23"
+        test1 = "2020/04/23"
         @test format_date(test1) == Date(2020, 04, 23)
         @test typeof(format_date(test1)) == Date
 
         @test_throws Exception format_date("20-04-23")
-        @test_throws Exception format_date("2020/04/23")
         @test_throws Exception format_date("2020-04-0X")
     end #format_date
 
@@ -142,6 +141,16 @@ using Dates
         @test Analysis2_slice[1] == Any[Date("2021-03-03"), Date("2021-04-25"), Date("2021-04-23")]
         @test Analysis2_slice[2] == Any["NGVKGFNCYFPLQSYGFQPTNGVGYQPYRVVVLSFELLHAPATVCGPKKSTNLVKNKCVN", "MFVFLVLLPLVSSQCVNLTTRTQLPPAYTNSFTRGVYYPDKVFRSSVLHSTQDLFLPFFS", "LLALHKSYLTPGDSFSGWTAGAAAYYVGYLQPRTFLLKYNENGTITDAVDCALDPLSETK"]
     end #slice_fasta_date
+
+    @testset "time_vs_align_score" begin
+        Analysis2_align = time_vs_align_score(Analysis2_path, 3)
+        @test length(Analysis2_align) == 2
+        @test Analysis2_align[1] == Any[53.0, 51.0, 2.0]
+        @test Analysis2_align[2] == Any[-29.0, -30.0, -32.0]
+
+        @test all(x -> x isa Float64, Analysis2_align[1])
+        @test all(x -> x isa Float64, Analysis2_align[2])
+    end #time_vs_align_score
 
 end # strings
 
