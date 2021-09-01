@@ -141,6 +141,9 @@ function parse_fasta(path)
 end
 
 export mean_and_std_fasta
+
+using Statistics 
+
 """
     mean_and_std_fasta(path)
 
@@ -148,8 +151,6 @@ Given path to a fasta file, returns mean and standard deviation of sequence leng
 
 Returns tuple (mean length, std length, mean gc content, std gc content)
 """
-using Statistics 
-
 function mean_and_std_fasta(path)
 
     sequences = parse_fasta(path)[2]
@@ -358,6 +359,8 @@ function uniquekmer_mean_and_std(category_sequence, k)
     return category_mean_and_std
 end
 
+using Dates
+
 export format_date
 """
     format_date(date)
@@ -370,8 +373,6 @@ julia> date = "2021/07/25";
 julia> format_date(date)
 2021-07-25
 """
-using Dates
-
 function format_date(date)
     length(date) == 10 || error("Date is not in YYYY-MM-DD format")  ## Checking that input is properly formatted
 
@@ -394,6 +395,8 @@ function format_date(date)
     return Date(YYYY, MM, DD)
 end
 
+using Dates
+
 export date_diff
 
 """
@@ -401,8 +404,6 @@ export date_diff
 
 Returns the length of time (in days) between two dates of the form "YYYY-MM-DD" 
 """
-using Dates
-
 function date_diff(date1, date2)
     typeof(date1) == Date || (date1 = format_date(date1))          ##Formatting dates for Dates package operation
     typeof(date2) == Date || (date2 = format_date(date2))
@@ -453,6 +454,8 @@ function slice_fasta_date(path, k)
     return tuple(dates_formatted[indices], sequences[indices])
 end
 
+using BioAlignments
+
 export time_vs_align_score
 
 """
@@ -464,8 +467,6 @@ Produces one data point for every match pair within fasta file.
     
 Score model only accommodates fasta files containing protein sequences. 
 """
-using BioAlignments
-
 function time_vs_align_score(path, k)
     dates, sequences = slice_fasta_date(path, k)
 
