@@ -1,6 +1,5 @@
 using BISC195Bioinformatics
 using Test
-using Dates
 
 @testset "BISC195Bioinformatics" begin
     
@@ -110,7 +109,7 @@ using Dates
                    ("Gamma", 28.5, 0.7071067811865476), 
                    ("Delta", 35.5, 9.192388155425117), 
                    ("Alpha", 30.5, 13.435028842544403)]
-                   
+
         @test all(x -> x in test, Analysis1_kmer)
         @test all(x -> x isa Tuple, Analysis1_kmer)
         @test all(x -> x[1] isa String, Analysis1_kmer)
