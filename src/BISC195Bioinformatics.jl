@@ -279,14 +279,29 @@ function slice_fasta_var(path, variant_dict, k)
     
     for header in headers                     
         split_header = split(header, "|")
-        push!(pangolins, split_header[2])                                          
+        push!(pangolins, split_header[2])
     end
 
     var_seq = []                                 ## Array contains tuples of variant name and sequences
     variant_set = Set()                          ## Set containing all variant names present in data set w/o repeats
 
-    i = 1                                        
-    for pangolin in pangolins                    
+    #=
+    I'd probably change this to do
+    
+    ```
+    for i in eachindex(pangolins)
+        pangolin = pangolins[i]
+        # etc...
+    end
+    ```
+
+    Or at the very least, pull the increment of `i` out of the conditional.
+    The reason is that, if for some reason you hit sequences that don't have
+    a variant found in `variant_dict`, your `i` will end up not in sync
+    with the pangolin array loop
+    =#
+    i = 1
+    for pangolin in pangolins
         if haskey(variant_dict, pangolin)                                ## If panglolin in variant_dict
             push!(var_seq, tuple(variant_dict[pangolin], sequences[i]))  ## Tuple & push variant name and sequence
             push!(variant_set, variant_dict[pangolin])       ## Push variant name into set to keep track of variants in dataset
