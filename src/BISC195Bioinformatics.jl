@@ -15,7 +15,7 @@ function normalizeDNA(seq)
         occursin(base, "AGCTN") || error("invalid base $base")
     end
     return seq # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
-end
+end #normalizeDNA
 
 export composition
 """
@@ -47,7 +47,7 @@ function composition(sequence)
         end
     end
     return base_count
-end
+end # composition
 
 export gc_content
 """
@@ -68,7 +68,7 @@ function gc_content(sequence)
     
     ## return GC content as number of G's and C's out of sequence length
     return gc_count / seqlength
-end
+end #gc_content
 
 export complement 
 """
@@ -94,7 +94,7 @@ function complement(sequence::AbstractString)
         complement_seq = complement_seq * complements[base]
     end
     return complement_seq
-end
+end #complement
 
 export reverse_complement
 """
@@ -108,7 +108,7 @@ function reverse_complement(sequence)
     rev_comp_seq = reverse(comp_seq)
 
     return rev_comp_seq
-end
+end # reverse_complement
 
 export parse_fasta 
 """
@@ -138,11 +138,12 @@ function parse_fasta(path)
     end
     push!(sequences, current_seq)             
     return tuple(headers, sequences)
-end
+end # parse_fasta
 
 export mean_and_std_fasta
 
 using Statistics 
+=======
 
 """
     mean_and_std_fasta(path)
@@ -169,7 +170,7 @@ function mean_and_std_fasta(path)
     std_gc_content = std(gc_contents)
     
     tuple(mean_length, std_length, mean_gc_content, std_gc_content)
-end
+end # mean_and_std_fasta
 
 export sequence_lengths
 """
@@ -186,7 +187,7 @@ function sequence_lengths(path)
     end
 
     return seq_lengths
-end
+end # sequence_lengths
 
 export morethan25k
 """
@@ -203,7 +204,7 @@ function morethan25k(headers, sequences)
     sequences_25k = sequences[keep]
 
     return tuple(headers_25k, sequences_25k, seq_lengths)
-end
+end # morethan25k
 
 export uniquekmers
 """
@@ -212,7 +213,9 @@ export uniquekmers
 Given a sequence and an integer k, returns all unique sequences of length k. 
 Does not recognize kmers containing invalid bases. 
 
-Example: 
+# Examples:
+=======
+    
 julia> seq = "ATGCGATXGTAC";
 
 julia> uniquekmers(seq, 4)
@@ -246,7 +249,7 @@ function  uniquekmers(sequence, k)
         keep && push!(kmers, kmer) ## If keep still true, push kmer to set
     end
     return kmers
-end
+end # uniquekmers
 
 export slice_fasta_var
 """
@@ -255,14 +258,16 @@ export slice_fasta_var
 Given a path to a fasta file and array of pre-defined variant arrays, outputs array of tuples containing k number of sequences 
 from each variant in variants and the variant name. 
 
-Example: 
+# Examples:
+=======
+
 julia> variant_dict = Dict("Alpha" => "Alpha",
                            "B.1.1.7" => "Alpha",
                            "Beta" => "Beta",
                            "B.1.351" => "Beta",
                            etc...)
 
-julia> slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2)
+julia> test_slice = slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2)
 8-element Vector{Any}:
 ("Beta", "TTTGCGTTTTTAAAGCGCCCCGATAAGCTAGATCGATCGCGTAGCGCTCAGCTAGCTTAG")
 ⋮
@@ -270,8 +275,8 @@ julia> slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2)
 
 julia> slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 100)
 ERROR: Dataset contains less than 100 entries for Beta variant
-
 """
+    
 function slice_fasta_var(path, variant_dict, k)
     headers, sequences = parse_fasta(path)
 
@@ -331,15 +336,29 @@ function slice_fasta_var(path, variant_dict, k)
     end
 
     return var_seq[indices]
-end
+end # slice_fasta_var
 
 export uniquekmer_mean_and_std
+
 """
     uniquekmer_mean_and_std(category_sequence, k)
 
-Given an array of tuples of the form ("Category", "Sequence") and a kmer length (k), returns tuple of the form ("Category", 
-mean # unique kmers per seq, std dev). 
+Given an array of tuples of the form ("Category", "Sequence") and a kmer length (k), returns array of tuples of the form 
+("Category", mean # unique kmers, std dev). 
+
+# Examples:
+=======
+
+julia> test_slice = slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2);
+
+julia> uniquekmer_mean_and_std(test_slice, 3)
+4-element Vector{Any}:
+("Beta", 31.0, 4.242640687119285)
+("Gamma", 28.5, 0.7071067811865476)
+("Delta", 35.5, 9.192388155425117)
+("Alpha", 30.5, 13.435028842544403)
 """
+
 function uniquekmer_mean_and_std(category_sequence, k)
     categories = []                                        ## array containing category names (i.e. "Alpha", "Beta", etc.)
     uniquekmer_counts = []
@@ -372,22 +391,27 @@ function uniquekmer_mean_and_std(category_sequence, k)
         push!(category_mean_and_std, tuple(categories[i], mean_kmer, std_dev_kmer))
     end
     return category_mean_and_std
-end
+end # uniquekmer_mean_and_std
 
 using Dates
 
 export format_date
+
 """
     format_date(date)
 
-Given a date in the format "YYYY-MM-DD", returns date in the formatting for Date package, i.e. Date(YYYY, MM, DD).
+Given a date in the format "YYYY-MM-DD" or "YYYY/MM/DD", returns date in the formatting for Date package, i.e. Date(YYYY, MM, DD).
 
-Example:
-julia> date = "2021/07/25";
-
-julia> format_date(date)
+# Examples:
+=======
+      
+julia> format_date("2021/07/25")
 2021-07-25
+
+julia> format_date("20-04-21")
+ERROR: Date is not in YYYY-MM-DD format
 """
+      
 function format_date(date)
     length(date) == 10 || error("Date is not in YYYY-MM-DD format")  ## Checking that input is properly formatted
 
@@ -408,31 +432,64 @@ function format_date(date)
     DD = parse(Int64, date_split[3])
     
     return Date(YYYY, MM, DD)
-end
+end # format_date
 
 using Dates
 
 export date_diff
-
+      
 """
     date_diff(date1, date2)
 
-Returns the length of time (in days) between two dates of the form "YYYY-MM-DD" 
+Returns the length of time (in days) between two dates of the form "YYYY-MM-DD".
+
+# Examples:
+=======
+
+julia> date1 = "2020-01-10";
+
+julia> date2 = "2020-01-02";
+
+julia> test = date_diff(date1, date2)
+8
+
+julia> typeof(test)
+Int64
 """
+      
 function date_diff(date1, date2)
     typeof(date1) == Date || (date1 = format_date(date1))          ##Formatting dates for Dates package operation
     typeof(date2) == Date || (date2 = format_date(date2))
 
     diff = abs(date2 - date1)
     return Dates.value(diff)                                       ## Convert Date type into integer 
-end
+end # date_diff
 
 export slice_fasta_date
+      
 """
     slice_fasta_date(path, k)
 
-Given a path to a fasta file and a sample size k, provides an array of tuples of the form (Collection date, sequence)
+Given a path to a fasta file and a sample size k, provides an array of tuples of the form (collection date, sequence).
+
+# Examples:
+=======
+
+julia> path = "data/Analysis2_test.fasta"
+
+julia> test = slice_fasta_date(path, 3);
+
+julia> test[1]
+3-element Vector{Any}:
+ 2021-04-25
+ 2021-04-23
+ 2021-03-03
+
+julia> test[2]
+3-element Vector{Any}:
+"NGVKGFNCYFPLQSY..."
 """
+      
 function slice_fasta_date(path, k)
     headers, sequences = parse_fasta(path)
 
@@ -467,7 +524,7 @@ function slice_fasta_date(path, k)
     end
 
     return tuple(dates_formatted[indices], sequences[indices])
-end
+end # slice_fasta_date
 
 using BioAlignments
 
@@ -476,26 +533,32 @@ export time_vs_align_score
 """
     time_vs_align_score(path, k)
 
-Given a path to a fasta file and a sample size (k), produces array of data points with length of time between collection dates and
-protein alignment score. 
-Produces one data point for every match pair within fasta file.
+Given a path to a fasta file and a sample size (k), returns tuple of two arrays. First array lists length of time between collection
+dates, second array lists protein alignment scores. 
     
 Score model only accommodates fasta files containing protein sequences. 
+
+# Examples:
+=======
+
+julia> time_vs_align_score(path, 3)
+(Any[2.0, 51.0, 53.0], Any[-32.0, -30.0, -29.0])
 """
+      
 function time_vs_align_score(path, k)
     dates, sequences = slice_fasta_date(path, k)
 
     align_mat = zeros(length(sequences), length(sequences))       ## Initializing matrices for alignment and date comparison
     time_mat = zeros(length(dates), length(dates))
 
-    scoremodel = AffineGapScoreModel(BLOSUM62, gap_open=-10, gap_extend=-1)
+    scoremodel = AffineGapScoreModel(BLOSUM62, gap_open=-10, gap_extend=-1) ## Score model for alignment algorithm
 
     times = []
     scores = []
 
-    for i in 1:length(dates)
+    for i in 1:length(dates)         
         for j in 1:length(dates)
-            if i < j
+            if i < j                ## for upper half of each matrix triangle, calculate and push time and score
                 align_mat[i, j] = score(pairalign(GlobalAlignment(), sequences[i], sequences[j], scoremodel))
                 time_mat[i, j] = date_diff(dates[i], dates[j])
                 push!(times, time_mat[i, j])
@@ -504,6 +567,6 @@ function time_vs_align_score(path, k)
         end
     end
     return tuple(times, scores)
-end 
+end # time_vs_align_score
 
 end # module BISC195Bioinformatics
