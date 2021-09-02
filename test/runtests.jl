@@ -92,7 +92,7 @@ using Test
                 "AY.3" => "Delta",
                 "AY.3.1" => "Delta")
 
-        testpath = normpath(joinpath(@__DIR__, "data"))
+        testpath = normpath(joinpath(@__DIR__, "..", "data"))
         Analysis1_path = joinpath(testpath, "Analysis1_test.fasta")
 
         Analysis1_slice = slice_fasta_var(Analysis1_path, variant_dict, 2)
@@ -104,6 +104,10 @@ using Test
     end # slice_fasta_var
     
     @testset "uniquekmer_mean_and_std" begin
+        testpath = normpath(joinpath(@__DIR__, "..", "data"))
+        Analysis1_path = joinpath(testpath, "Analysis1_test.fasta")
+
+        Analysis1_slice = slice_fasta_var(Analysis1_path, variant_dict, 2)
         Analysis1_kmer = uniquekmer_mean_and_std(Analysis1_slice, 3)
         test = Any[("Beta", 31.0, 4.242640687119285), 
                    ("Gamma", 28.5, 0.7071067811865476), 
@@ -135,7 +139,7 @@ using Test
     end #date_diff
 
     @testset "slice_fasta_date" begin
-        testpath = normpath(joinpath(@__DIR__, "data"))
+        testpath = normpath(joinpath(@__DIR__, "..", "data"))
         Analysis2_path = joinpath(testpath, "Analysis2_test.fasta")
         
         Analysis2_slice = slice_fasta_date(Analysis2_path, 3)
@@ -151,6 +155,8 @@ using Test
     end #slice_fasta_date
 
     @testset "time_vs_align_score" begin
+        testpath = normpath(joinpath(@__DIR__, "..", "data"))
+        Analysis2_path = joinpath(testpath, "Analysis2_test.fasta")
         Analysis2_align = time_vs_align_score(Analysis2_path, 3)
         times = Any[51.0, 2.0, 53.0]
         scores = Any[-30.0, -32.0, -29.0]
