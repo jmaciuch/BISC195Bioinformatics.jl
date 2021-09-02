@@ -442,7 +442,7 @@ function slice_fasta_date(path, k)
     
     for header in headers
         split_header = split(header, "|")
-        date = split_header[3]
+        date = split_header[3] # same comment here as above, if the date position is critical, you should indicate that in `data.md`
 
         if length(date) == 7                 ## If collection date only gives month and year i.e. 2020-07
             date = date * "-01"              ## Add default day (1st of the month)
