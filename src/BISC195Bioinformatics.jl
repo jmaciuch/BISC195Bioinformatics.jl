@@ -15,7 +15,7 @@ function normalizeDNA(seq)
         occursin(base, "AGCTN") || error("invalid base $base")
     end
     return seq # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
-end ##normalizeDNA
+end #normalizeDNA
 
 export composition
 """
@@ -47,7 +47,7 @@ function composition(sequence)
         end
     end
     return base_count
-end ## composition
+end # composition
 
 export gc_content
 """
@@ -68,7 +68,7 @@ function gc_content(sequence)
     
     ## return GC content as number of G's and C's out of sequence length
     return gc_count / seqlength
-end ##gc_content
+end #gc_content
 
 export complement 
 """
@@ -94,7 +94,7 @@ function complement(sequence::AbstractString)
         complement_seq = complement_seq * complements[base]
     end
     return complement_seq
-end ##complement
+end #complement
 
 export reverse_complement
 """
@@ -108,7 +108,7 @@ function reverse_complement(sequence)
     rev_comp_seq = reverse(comp_seq)
 
     return rev_comp_seq
-end ## reverse_complement
+end # reverse_complement
 
 export parse_fasta 
 """
@@ -138,11 +138,12 @@ function parse_fasta(path)
     end
     push!(sequences, current_seq)             
     return tuple(headers, sequences)
-end ## parse_fasta
+end # parse_fasta
 
 export mean_and_std_fasta
 
-using Statistics
+using Statistics 
+=======
 
 """
     mean_and_std_fasta(path)
@@ -169,7 +170,7 @@ function mean_and_std_fasta(path)
     std_gc_content = std(gc_contents)
     
     tuple(mean_length, std_length, mean_gc_content, std_gc_content)
-end ## mean_and_std_fasta
+end # mean_and_std_fasta
 
 export sequence_lengths
 """
@@ -186,7 +187,7 @@ function sequence_lengths(path)
     end
 
     return seq_lengths
-end ## sequence_lengths
+end # sequence_lengths
 
 export morethan25k
 """
@@ -203,7 +204,7 @@ function morethan25k(headers, sequences)
     sequences_25k = sequences[keep]
 
     return tuple(headers_25k, sequences_25k, seq_lengths)
-end ## morethan25k
+end # morethan25k
 
 export uniquekmers
 """
@@ -213,7 +214,8 @@ Given a sequence and an integer k, returns all unique sequences of length k.
 Does not recognize kmers containing invalid bases. 
 
 # Examples:
-```jldoctest 
+=======
+    
 julia> seq = "ATGCGATXGTAC";
 
 julia> uniquekmers(seq, 4)
@@ -223,7 +225,6 @@ Set{Any} with 5 elements:
   "ATGC"
   "CGAT"
   "GCGA"
-```
 """
 function  uniquekmers(sequence, k)
     1 <= k <= length(sequence) || error("k must be a positive integer less than the length of the sequence") ##Throws error if k is larger than sequence length
@@ -248,7 +249,7 @@ function  uniquekmers(sequence, k)
         keep && push!(kmers, kmer) ## If keep still true, push kmer to set
     end
     return kmers
-end ## uniquekmers
+end # uniquekmers
 
 export slice_fasta_var
 """
@@ -258,7 +259,8 @@ Given a path to a fasta file and array of pre-defined variant arrays, outputs ar
 from each variant in variants and the variant name. 
 
 # Examples:
-```jldoctest 
+=======
+
 julia> variant_dict = Dict("Alpha" => "Alpha",
                            "B.1.1.7" => "Alpha",
                            "Beta" => "Beta",
@@ -273,8 +275,8 @@ julia> test_slice = slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2
 
 julia> slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 100)
 ERROR: Dataset contains less than 100 entries for Beta variant
-```
 """
+    
 function slice_fasta_var(path, variant_dict, k)
     headers, sequences = parse_fasta(path)
 
@@ -282,14 +284,29 @@ function slice_fasta_var(path, variant_dict, k)
     
     for header in headers                     
         split_header = split(header, "|")
-        push!(pangolins, split_header[2])                                          
+        push!(pangolins, split_header[2])
     end
 
     var_seq = []                                 ## Array contains tuples of variant name and sequences
     variant_set = Set()                          ## Set containing all variant names present in data set w/o repeats
 
-    i = 1                                        
-    for pangolin in pangolins                    
+    #=
+    I'd probably change this to do
+    
+    ```
+    for i in eachindex(pangolins)
+        pangolin = pangolins[i]
+        # etc...
+    end
+    ```
+
+    Or at the very least, pull the increment of `i` out of the conditional.
+    The reason is that, if for some reason you hit sequences that don't have
+    a variant found in `variant_dict`, your `i` will end up not in sync
+    with the pangolin array loop
+    =#
+    i = 1
+    for pangolin in pangolins
         if haskey(variant_dict, pangolin)                                ## If panglolin in variant_dict
             push!(var_seq, tuple(variant_dict[pangolin], sequences[i]))  ## Tuple & push variant name and sequence
             push!(variant_set, variant_dict[pangolin])       ## Push variant name into set to keep track of variants in dataset
@@ -319,9 +336,10 @@ function slice_fasta_var(path, variant_dict, k)
     end
 
     return var_seq[indices]
-end ## slice_fasta_var
+end # slice_fasta_var
 
 export uniquekmer_mean_and_std
+
 """
     uniquekmer_mean_and_std(category_sequence, k)
 
@@ -329,7 +347,8 @@ Given an array of tuples of the form ("Category", "Sequence") and a kmer length 
 ("Category", mean # unique kmers, std dev). 
 
 # Examples:
-```jldoctest
+=======
+
 julia> test_slice = slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2);
 
 julia> uniquekmer_mean_and_std(test_slice, 3)
@@ -338,8 +357,8 @@ julia> uniquekmer_mean_and_std(test_slice, 3)
 ("Gamma", 28.5, 0.7071067811865476)
 ("Delta", 35.5, 9.192388155425117)
 ("Alpha", 30.5, 13.435028842544403)
-```
 """
+
 function uniquekmer_mean_and_std(category_sequence, k)
     categories = []                                        ## array containing category names (i.e. "Alpha", "Beta", etc.)
     uniquekmer_counts = []
@@ -372,11 +391,11 @@ function uniquekmer_mean_and_std(category_sequence, k)
         push!(category_mean_and_std, tuple(categories[i], mean_kmer, std_dev_kmer))
     end
     return category_mean_and_std
-end ## uniquekmer_mean_and_std
-
-export format_date
+end # uniquekmer_mean_and_std
 
 using Dates
+
+export format_date
 
 """
     format_date(date)
@@ -384,14 +403,15 @@ using Dates
 Given a date in the format "YYYY-MM-DD" or "YYYY/MM/DD", returns date in the formatting for Date package, i.e. Date(YYYY, MM, DD).
 
 # Examples:
-```jldoctest
+=======
+      
 julia> format_date("2021/07/25")
 2021-07-25
 
 julia> format_date("20-04-21")
 ERROR: Date is not in YYYY-MM-DD format
-```
 """
+      
 function format_date(date)
     length(date) == 10 || error("Date is not in YYYY-MM-DD format")  ## Checking that input is properly formatted
 
@@ -412,16 +432,20 @@ function format_date(date)
     DD = parse(Int64, date_split[3])
     
     return Date(YYYY, MM, DD)
-end ##format_date
+end # format_date
+
+using Dates
 
 export date_diff
+      
 """
     date_diff(date1, date2)
 
 Returns the length of time (in days) between two dates of the form "YYYY-MM-DD".
 
 # Examples:
-```jldoctest
+=======
+
 julia> date1 = "2020-01-10";
 
 julia> date2 = "2020-01-02";
@@ -431,24 +455,26 @@ julia> test = date_diff(date1, date2)
 
 julia> typeof(test)
 Int64
-```
 """
+      
 function date_diff(date1, date2)
     typeof(date1) == Date || (date1 = format_date(date1))          ##Formatting dates for Dates package operation
     typeof(date2) == Date || (date2 = format_date(date2))
 
     diff = abs(date2 - date1)
     return Dates.value(diff)                                       ## Convert Date type into integer 
-end ## date_diff
+end # date_diff
 
 export slice_fasta_date
+      
 """
     slice_fasta_date(path, k)
 
 Given a path to a fasta file and a sample size k, provides an array of tuples of the form (collection date, sequence).
 
 # Examples:
-```jldoctest
+=======
+
 julia> path = "data/Analysis2_test.fasta"
 
 julia> test = slice_fasta_date(path, 3);
@@ -462,8 +488,8 @@ julia> test[1]
 julia> test[2]
 3-element Vector{Any}:
 "NGVKGFNCYFPLQSY..."
-```
 """
+      
 function slice_fasta_date(path, k)
     headers, sequences = parse_fasta(path)
 
@@ -473,7 +499,7 @@ function slice_fasta_date(path, k)
     
     for header in headers
         split_header = split(header, "|")
-        date = split_header[3]
+        date = split_header[3] # same comment here as above, if the date position is critical, you should indicate that in `data.md`
 
         if length(date) == 7                 ## If collection date only gives month and year i.e. 2020-07
             date = date * "-01"              ## Add default day (1st of the month)
@@ -498,11 +524,12 @@ function slice_fasta_date(path, k)
     end
 
     return tuple(dates_formatted[indices], sequences[indices])
-end ## slice_fasta_date
+end # slice_fasta_date
+
+using BioAlignments
 
 export time_vs_align_score
 
-using BioAlignments
 """
     time_vs_align_score(path, k)
 
@@ -512,11 +539,12 @@ dates, second array lists protein alignment scores.
 Score model only accommodates fasta files containing protein sequences. 
 
 # Examples:
-```jldoctest
+=======
+
 julia> time_vs_align_score(path, 3)
 (Any[2.0, 51.0, 53.0], Any[-32.0, -30.0, -29.0])
-``` 
 """
+      
 function time_vs_align_score(path, k)
     dates, sequences = slice_fasta_date(path, k)
 
@@ -539,6 +567,6 @@ function time_vs_align_score(path, k)
         end
     end
     return tuple(times, scores)
-end ## time_vs_align_score
+end # time_vs_align_score
 
 end # module BISC195Bioinformatics
