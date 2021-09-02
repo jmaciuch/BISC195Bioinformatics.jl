@@ -212,7 +212,8 @@ export uniquekmers
 Given a sequence and an integer k, returns all unique sequences of length k. 
 Does not recognize kmers containing invalid bases. 
 
-Example: 
+# Examples:
+```jldoctest 
 julia> seq = "ATGCGATXGTAC";
 
 julia> uniquekmers(seq, 4)
@@ -222,6 +223,7 @@ Set{Any} with 5 elements:
   "ATGC"
   "CGAT"
   "GCGA"
+```
 """
 function  uniquekmers(sequence, k)
     1 <= k <= length(sequence) || error("k must be a positive integer less than the length of the sequence") ##Throws error if k is larger than sequence length
@@ -255,7 +257,8 @@ export slice_fasta_var
 Given a path to a fasta file and array of pre-defined variant arrays, outputs array of tuples containing k number of sequences 
 from each variant in variants and the variant name. 
 
-Example: 
+# Examples:
+```jldoctest 
 julia> variant_dict = Dict("Alpha" => "Alpha",
                            "B.1.1.7" => "Alpha",
                            "Beta" => "Beta",
@@ -270,7 +273,7 @@ julia> test_slice = slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2
 
 julia> slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 100)
 ERROR: Dataset contains less than 100 entries for Beta variant
-
+```
 """
 function slice_fasta_var(path, variant_dict, k)
     headers, sequences = parse_fasta(path)
@@ -325,7 +328,8 @@ export uniquekmer_mean_and_std
 Given an array of tuples of the form ("Category", "Sequence") and a kmer length (k), returns array of tuples of the form 
 ("Category", mean # unique kmers, std dev). 
 
-Example:
+# Examples:
+```jldoctest
 julia> test_slice = slice_fasta_var("data/Analysis1_test.fasta", variant_dict, 2);
 
 julia> uniquekmer_mean_and_std(test_slice, 3)
@@ -334,6 +338,7 @@ julia> uniquekmer_mean_and_std(test_slice, 3)
 ("Gamma", 28.5, 0.7071067811865476)
 ("Delta", 35.5, 9.192388155425117)
 ("Alpha", 30.5, 13.435028842544403)
+```
 """
 function uniquekmer_mean_and_std(category_sequence, k)
     categories = []                                        ## array containing category names (i.e. "Alpha", "Beta", etc.)
@@ -376,14 +381,16 @@ using Dates
 """
     format_date(date)
 
-Given a date in the format "YYYY-MM-DD", returns date in the formatting for Date package, i.e. Date(YYYY, MM, DD).
+Given a date in the format "YYYY-MM-DD" or "YYYY/MM/DD", returns date in the formatting for Date package, i.e. Date(YYYY, MM, DD).
 
-Example:
+# Examples:
+```jldoctest
 julia> format_date("2021/07/25")
 2021-07-25
 
 julia> format_date("20-04-21")
 ERROR: Date is not in YYYY-MM-DD format
+```
 """
 function format_date(date)
     length(date) == 10 || error("Date is not in YYYY-MM-DD format")  ## Checking that input is properly formatted
@@ -413,7 +420,8 @@ export date_diff
 
 Returns the length of time (in days) between two dates of the form "YYYY-MM-DD".
 
-Example:
+# Examples:
+```jldoctest
 julia> date1 = "2020-01-10";
 
 julia> date2 = "2020-01-02";
@@ -423,6 +431,7 @@ julia> test = date_diff(date1, date2)
 
 julia> typeof(test)
 Int64
+```
 """
 function date_diff(date1, date2)
     typeof(date1) == Date || (date1 = format_date(date1))          ##Formatting dates for Dates package operation
@@ -438,7 +447,8 @@ export slice_fasta_date
 
 Given a path to a fasta file and a sample size k, provides an array of tuples of the form (collection date, sequence).
 
-Example:
+# Examples:
+```jldoctest
 julia> path = "data/Analysis2_test.fasta"
 
 julia> test = slice_fasta_date(path, 3);
@@ -449,9 +459,10 @@ julia> test[1]
  2021-04-23
  2021-03-03
 
- julia> test[2]
- 3-element Vector{Any}:
- "NGVKGFNCYFPLQSY..."
+julia> test[2]
+3-element Vector{Any}:
+"NGVKGFNCYFPLQSY..."
+```
 """
 function slice_fasta_date(path, k)
     headers, sequences = parse_fasta(path)
@@ -495,15 +506,16 @@ using BioAlignments
 """
     time_vs_align_score(path, k)
 
-Given a path to a fasta file and a sample size (k), produces array of data points with length of time between collection dates and
-protein alignment score. 
-Produces one data point for every match pair within fasta file.
+Given a path to a fasta file and a sample size (k), returns tuple of two arrays. First array lists length of time between collection
+dates, second array lists protein alignment scores. 
     
 Score model only accommodates fasta files containing protein sequences. 
 
-Example:
+# Examples:
+```jldoctest
 julia> time_vs_align_score(path, 3)
 (Any[2.0, 51.0, 53.0], Any[-32.0, -30.0, -29.0])
+``` 
 """
 function time_vs_align_score(path, k)
     dates, sequences = slice_fasta_date(path, k)
